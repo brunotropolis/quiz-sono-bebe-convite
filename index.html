@@ -452,6 +452,26 @@
     }
   }
 
+  // ─── Analytics Tracking ────────────────────────────────────
+  const TRACKING_URL = 'https://script.google.com/macros/s/AKfycbzh-GOfXA6A8tYKfn7U8fK4MXYI40M5CKMyTPergH9EqvjYGF2j5LbFQE68LhMKsQFm/exec';
+  const QUIZ_VERSION = 'convite';
+
+  function trackEvent(eventType, profileName) {
+    try {
+      fetch(TRACKING_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          quiz_version: QUIZ_VERSION,
+          event_type: eventType,
+          profile: profileName,
+          user_agent: navigator.userAgent
+        })
+      });
+    } catch(e) {}
+  }
+
   // ─── Show result ──────────────────────────────────────────────
   function showResult() {
     let profile;
@@ -465,6 +485,18 @@
     document.getElementById('result-animal-img').src = profile.img;
     document.getElementById('result-animal-img').alt = profile.animal;
     document.getElementById('result-desc').innerHTML = profile.desc;
+
+    trackEvent('quiz_complete', profile.animal);
+
+    // Track CTA button clicks
+    setTimeout(() => {
+      const ctaBtn = document.getElementById('cta-btn');
+      if (ctaBtn) {
+        ctaBtn.addEventListener('click', () => {
+          trackEvent('button_click', profile.animal);
+        });
+      }
+    }, 100);
 
     showScreen(TOTAL_QUESTIONS);
   }
