@@ -374,6 +374,7 @@
   let currentScreen = 0;
   let score = 0;
   const answers = new Array(TOTAL_QUESTIONS).fill(null);
+  const questionAnswered = new Array(TOTAL_QUESTIONS).fill(false);
 
   // ─── Result profiles ──────────────────────────────────────────
   const PROFILES = {
@@ -436,6 +437,12 @@
     score = score - prev + points;
     answers[questionIdx] = points;
 
+    // Funnel tracking — só dispara 1 vez por pergunta (na primeira resposta)
+    if (!questionAnswered[questionIdx]) {
+      questionAnswered[questionIdx] = true;
+      trackEvent('question_answered', 'q' + (questionIdx + 1));
+    }
+
     setTimeout(() => {
       if (questionIdx < TOTAL_QUESTIONS - 1) {
         showScreen(questionIdx + 1);
@@ -470,6 +477,13 @@
         })
       });
     } catch(e) {}
+  }
+
+  // Track quiz start (1x na carga, só se não for bot)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => trackEvent('quiz_start', 'start'));
+  } else {
+    trackEvent('quiz_start', 'start');
   }
 
   // ─── Show result ──────────────────────────────────────────────
